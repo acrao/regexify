@@ -1,45 +1,51 @@
 (ns regexify.async
   (:require
+    [cljs.pprint :refer [pprint]]
     [cljs.core.async :refer [put! <! chan]]
+    [regexify.components :refer [matches-state]]
     [dommy.core :as dommy])
   (:require-macros
     [dommy.core :refer [sel1]]
     [cljs.core.async.macros :refer [go go-loop]]))
 
-;; regex
-(def regex-chan (chan))
+(defn- elem-keyword->class
+  [elem-keyword]
+  (->> elem-keyword name (str "#") keyword))
 
-(defn regex-chan-handler
-  []
-  (go-loop []
-    (let [])
-    (recur)))
-
-;; match-text
-(def match-text-chan (chan))
-
-;; matches
-(def matches-chan (chan))
-
-
-
-(defn keypress-event
-  "Binds a key press event to a particular element with the given handler"
-  [elem handler]
-  (dommy/listen! (sel1 elem) :keypress handler))
-
-(defn keypress-event-handler
+(defn- echo-handler
   [chan type]
   (fn [e]
-    (.log js/console "Event of type " type)
     (put! chan {:type type
-                :target (.-selectedTarget e)})))
+              :target (.-target e)})))
 
-(defn async-events
-  []
-  (keypress-event :#regex-input
-    (keypress-event-handler regex-chan :regex-input))
-  (keypress-event :#match-text
-    (keypress-event-handler regex-chan :match-input))
-  (keypress-event :#regex-matches
-    (keypress-event-handler regex-chan :regex-matches)))
+(defn bind-echo-keypress-event
+  "Binds a key press event to a particular element with the given handler"
+  [chan elem]
+  (dommy/listen! (-> elem elem-keyword->class sel1)
+    :keypress (echo-handler chan elem)))
+
+(defn bind-input-events
+  [chan]
+  (bind-echo-keypress-event chan :regex-input)
+  (bind-echo-keypress-event chan :match-text))
+
+(defn input-listner
+  [input-chan out-chan]
+  (go-loop []
+    (let [{:keys [type target]} (<! input-chan)]
+      (.log js/console (.-value target))
+      (put! out-chan (str type " : " (.-value target))))
+    (recur)))
+
+(defn- update-matches-state
+  [matches]
+  (println "updating matches : " matches)
+  (reset! matches-state matches)
+  (println "new match state : " @matches-state))
+
+(defn output-listner
+  [out-chan handler]
+  (println "starting output listener")
+  (go-loop []
+    (update-matches-state (<! out-chan))
+    (recur)))

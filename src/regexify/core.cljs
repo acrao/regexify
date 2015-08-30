@@ -2,13 +2,21 @@
   (:require
     [regexify.components :as components]
     [regexify.async :as async]
-    [cljs.core.async :refer [<!]]
+    [cljs.core.async :refer [<! chan]]
     [reagent.core :as reagent :refer [atom]])
   (:require-macros
     [dommy.core :refer [sel1]]
-    [cljs.core.async.macros :refer [go]]))
+    [cljs.core.async.macros :refer [go go-loop]]))
 
 (defonce app-state (atom {:text "Hello world!"}))
+
+(defn flow
+  []
+  (let [input-chan (chan)
+        matches-chan (chan)]
+    (async/bind-input-events input-chan)
+    (async/input-listner input-chan matches-chan)
+    (async/output-listner matches-chan #(.log js/console %))))
 
 (defn main
   []
@@ -17,7 +25,7 @@
   (reagent/render-component
     [components/regexify-parent]
     (sel1 :body))
-  (async/async-events))
+  (flow))
 
 (defn on-js-reload
   []
@@ -25,11 +33,11 @@
 
 (main)
 
-(comment
-  (use 'figwheel-sidecar.repl-api)
-  (cljs-repl)
-  (defn key-handler
-    [e]
-    (.log js/console "key press yo yo yo " (.-selectedTarget e)))
-
-  (dommy/listen! (sel1 :#regex-input) :keypress key-handler))
+;(comment
+;  (use 'figwheel-sidecar.repl-api)
+;  (cljs-repl)
+;  (defn key-handler
+;    [e]
+;    (.log js/console "key press yo yo yo " (.-selectedTarget e)))
+;
+;  (dommy/listen! (sel1 :#regex-input) :keypress key-handler))

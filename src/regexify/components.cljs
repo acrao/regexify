@@ -1,4 +1,9 @@
-(ns regexify.components)
+(ns regexify.components
+  (:require
+    [reagent.core :as r]))
+
+(def matches-state
+  (r/atom "WTF"))
 
 (defn regex-input
   []
@@ -10,11 +15,16 @@
   [:div#match-text-div
    [:textarea#match-text {:rows 10 :placeholder "Match text goes here"}]])
 
-
 (defn regex-matches
-  []
+  [value]
   [:div#regex-matches-div
-   [:textarea#regex-matches {:rows 10 :placeholder "Matches!"}]])
+   [:span "Matches!"]
+   [:br]
+   [:span @value]
+   #_[:textarea#regex-matches
+      {:rows 10
+       :placeholder "Matches!"
+       :value @value}]])
 
 (defn regexify-parent
   []
@@ -22,4 +32,4 @@
    [:h1 "foobar"]
    [regex-input]
    [match-text]
-   [regex-matches]])
+   [regex-matches matches-state]])
