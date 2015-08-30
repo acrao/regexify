@@ -47,7 +47,7 @@
                        target
                        (-> (sel1 :#match-text) (.-value)))]
     (println "Resolved regex-input " regex-input " match-text " match-text)
-    (reset! matches-state (regex/regex-matches regex-input match-text) #_(regex/regex-matches))))
+    (swap! matches-state merge {:matches (regex/regex-matches regex-input match-text)} #_(regex/regex-matches))))
 
 (defn output-listner
   [out-chan handler]

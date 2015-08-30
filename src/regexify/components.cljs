@@ -3,7 +3,7 @@
     [reagent.core :as r]))
 
 (def matches-state
-  (r/atom "WTF"))
+  (r/atom {:matches "No matches" :groups nil}))
 
 (defn regex-input
   []
@@ -15,12 +15,17 @@
   [:div#match-text-div
    [:textarea#match-text {:rows 10 :placeholder "Match text goes here"}]])
 
+(defn- groups
+  [value]
+  [:div#match-groups-div
+   [:span (:groups @value)]])
+
 (defn regex-matches
   [value]
   [:div#regex-matches-div
    [:span "Matches!"]
    [:br]
-   [:span @value]])
+   [:span (:matches @value)]])
 
 (defn regexify-parent
   []
