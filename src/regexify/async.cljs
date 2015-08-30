@@ -2,6 +2,7 @@
   (:require
     [cljs.pprint :refer [pprint]]
     [cljs.core.async :refer [put! <! chan]]
+    [regexify.regex :as regex]
     [regexify.components :refer [matches-state]]
     [dommy.core :as dommy])
   (:require-macros
@@ -16,7 +17,7 @@
   [chan type]
   (fn [e]
     (put! chan {:type type
-              :target (.-target e)})))
+                :target (.-target e)})))
 
 (defn bind-echo-keypress-event
   "Binds a key press event to a particular element with the given handler"
@@ -38,14 +39,18 @@
     (recur)))
 
 (defn- update-matches-state
-  [matches]
-  (println "updating matches : " matches)
-  (reset! matches-state matches)
-  (println "new match state : " @matches-state))
+  [{:keys [type target]}]
+  (let [regex-input (if (= type :regex-input)
+                      target
+                      (-> (sel1 :#regex-input) (.-value)))
+        match-text (if (= type :match-text)
+                       target
+                       (-> (sel1 :#match-text) (.-value)))]
+    (println "Resolved regex-input " regex-input " match-text " match-text)
+    (reset! matches-state (regex/regex-matches regex-input match-text) #_(regex/regex-matches))))
 
 (defn output-listner
   [out-chan handler]
-  (println "starting output listener")
   (go-loop []
     (update-matches-state (<! out-chan))
     (recur)))

@@ -20,11 +20,7 @@
   [:div#regex-matches-div
    [:span "Matches!"]
    [:br]
-   [:span @value]
-   #_[:textarea#regex-matches
-      {:rows 10
-       :placeholder "Matches!"
-       :value @value}]])
+   [:span @value]])
 
 (defn regexify-parent
   []
