@@ -2,7 +2,6 @@
   (:require
     [cljs.pprint :refer [pprint]]
     [cljs.core.async :refer [put! <! chan]]
-    [regexify.regex :as regex]
     [regexify.components :refer [matches-state]]
     [dommy.core :as dommy])
   (:require-macros
@@ -38,6 +37,22 @@
       (put! out-chan (str type " : " (.-value target))))
     (recur)))
 
+(defn regex-matches
+  [in-str txt]
+  (try
+    (re-find (re-pattern in-str) txt)
+    (catch js/Error e
+      (println "invalid regex : " in-str))))
+
+(defn regex-groups
+  [in-str txt]
+  (drop 1 (re-groups (re-matcher (re-pattern in-str) txt)))
+
+  #_(try
+    (drop 1 (re-groups (re-matcher (re-pattern in-str) txt)))
+    (catch js/Error e
+      (println "unable to get re groups"))))
+
 (defn- update-matches-state
   [{:keys [type target]}]
   (let [regex-input (if (= type :regex-input)
@@ -47,7 +62,9 @@
                        target
                        (-> (sel1 :#match-text) (.-value)))]
     (println "Resolved regex-input " regex-input " match-text " match-text)
-    (swap! matches-state merge {:matches (regex/regex-matches regex-input match-text)} #_(regex/regex-matches))))
+    (when (and regex-input match-text)
+      (swap! matches-state merge {:matches (regex-matches regex-input match-text)
+                                  :groups (regex-groups regex-input match-text)}))))
 
 (defn output-listner
   [out-chan handler]

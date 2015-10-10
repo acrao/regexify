@@ -18,6 +18,7 @@
 (defn- groups
   [value]
   [:div#match-groups-div
+   [:span "Groups!"]
    [:span (:groups @value)]])
 
 (defn regex-matches
@@ -33,4 +34,5 @@
    [:h1 "foobar"]
    [regex-input]
    [match-text]
-   [regex-matches matches-state]])
+   [regex-matches matches-state]
+   [groups matches-state]])
